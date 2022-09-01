@@ -65,10 +65,15 @@ compcase = 0;
 if isvector(y)
     compcase = 1;
     yorient = orientation_1d_AAA(y);
+    y=y(:);
+    NT=1;
 elseif M==length(x)
     compcase = 2;
+    NT = N;
 elseif N==length(x)
     compcase = 3;
+    y=y';
+    NT = M;
 else
     error('Not sure what to do with your input');
 end
@@ -76,7 +81,6 @@ end
 % Make sure x and bins are column vectors
 x = column_AAA(x);
 bins = column_AAA(bins);
-NB = length(bins);
 [x,I]=sort(x);
 if strcmp(BinCentering,'center')
     edges(1)=bins(1);
@@ -89,59 +93,38 @@ elseif strcmp(BinCentering,'edges')
 else
     error('Unrecognized bin option');
 end
-
+NB = length(x_center);
 bin_ind = discretize(x,edges);
 I2=~isnan(bin_ind);
 bin_ind = bin_ind(I2);
 
 switch compcase
     case 1
-        yorient = orientation_1d_AAA(y);
-        y = column_AAA(y);
-        y = y(I);
-        y = y(I2);
-        y_binned = accumarray(bin_ind,y,[NB,1],@nanmean,NaN);
-        if strcmp(InterpFill,'interp') && sum(~isnan(y_binned))>=2
-            y_binned = interp1(x_center(~isnan(y_binned)),y_binned(~isnan(y_binned)),x_center,'linear');
-        elseif strcmp(InterpFill,'extrap') && sum(~isnan(y_binned))>=2
-            y_binned = interp1(x_center(~isnan(y_binned)),y_binned(~isnan(y_binned)),x_center,'linear','extrap');
-        end
+        y=y(I);
+        y=y(I2);
+    case {2,3}
+        y=y(I,:);
+        y=y(I2,:);
+end
+y_binned = NaN(NB,NT);
+for t=1:NT
+    if t>1
+        fprintf('%i percent done \n',round(t/NT*100));
+    end
+    tmp_binned = accumarray(bin_ind,y(:,t),[NB,1],@nanmean,NaN);
+    if strcmp(InterpFill,'interp') && sum(~isnan(tmp_binned))>=2
+        tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear');
+    elseif strcmp(InterpFill,'extrap') && sum(~isnan(tmp_binned))>=2
+        tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear','extrap');
+    end
+    y_binned(:,t) = tmp_binned;
+end
+
+switch compcase
+    case 1
         y_binned = orient_1d_AAA(y_binned,yorient);
-        
-    case 2
-        y_binned = NaN(length(x_center),N);
-        y = y(I,:);
-        y = y(I2,:);
-        for t=1:N
-            fprintf('%i percent done \n',round(t/N*100));
-            tmp = y(:,t);
-            tmp = column_AAA(tmp);
-            tmp_binned = accumarray(bin_ind,tmp,[NB,1],@nanmean,NaN);
-            if strcmp(InterpFill,'interp') && sum(~isnan(tmp_binned))>=2
-                tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear');
-            elseif strcmp(InterpFill,'extrap') && sum(~isnan(tmp_binned))>=2
-                tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear','extrap');
-            end
-            y_binned(:,t) = tmp_binned;
-        end
     case 3
-        y_binned = NaN(M,length(x_center));
-        y = y(:,I);
-        y = y(:,I2);
-        for t=1:M
-            fprintf('%i percent done \n',round(t/M*100));
-            tmp = y(t,:);
-            tmp = column_AAA(tmp);
-            tmp_binned = accumarray(bin_ind,tmp,[NB,1],@nanmean,NaN);
-            if strcmp(InterpFill,'interp') && sum(~isnan(tmp_binned))>=2
-                tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear');
-            elseif strcmp(InterpFill,'extrap') && sum(~isnan(tmp_binned))>=2
-                tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear','extrap');
-            end
-            y_binned(t,:) = tmp_binned;
-        end
-    otherwise
-        error('Unrecognized case');
+        y_binned = y_binned';
 end
 x_center = orient_1d_AAA(x_center,xorient);
 end
