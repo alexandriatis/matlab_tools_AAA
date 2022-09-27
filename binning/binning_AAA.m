@@ -108,9 +108,6 @@ switch compcase
 end
 y_binned = NaN(NB,NT);
 for t=1:NT
-    if t>1
-        fprintf('%i percent done \n',round(t/NT*100));
-    end
     tmp_binned = accumarray(bin_ind,y(:,t),[NB,1],@nanmean,NaN);
     if strcmp(InterpFill,'interp') && sum(~isnan(tmp_binned))>=2
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear');
@@ -118,6 +115,7 @@ for t=1:NT
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear','extrap');
     end
     y_binned(:,t) = tmp_binned;
+    fprintf('binning %i percent done \n',floor(t/NT*100));
 end
 
 switch compcase

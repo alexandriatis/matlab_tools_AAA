@@ -42,5 +42,8 @@ fNy = 0.5*sfreq;
 [b,a] = butter(order,filtfreq./fNy,ftype);
 
 for i=1:size(ydata,1)
-    yfilt(i,:)=filtfilt(b,a,ydata(i,:));
+    tmp = ydata(i,:);
+    trend = trend_AAA(1:length(tmp),tmp,1); % Detrend data before filtering
+    tmp = tmp-trend;
+    yfilt(i,:)=filtfilt(b,a,tmp);
 end
