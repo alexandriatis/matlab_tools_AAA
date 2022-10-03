@@ -1,4 +1,4 @@
-function [xd,dy]=diff_AAA(x,y)
+function [dy,xd]=diff_AAA(x,y)
 % function diff_AAA is for computing the simple dy/dindex, but also gets
 % the centerpoint of the x-vector it's associated with, because it's
 % annoying to write it out each time.

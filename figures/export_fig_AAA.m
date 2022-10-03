@@ -9,11 +9,9 @@ switch speed
     case 'fast'
         savefig(f,savepath,'compact');
         print(f,savepath,'-dpng','-r150');
-        %print(f,savepath,'-dpdf','-r150');
     case 'fancy'
         %savefig(f,savepath); 
-        export_fig(f,fullfile(figpath,figname),'-r150','-png','-transparent');
-        %export_fig(f,fullfile(figpath,figname),'-r300','-pdf','-transparent');
+        export_fig(f,fullfile(figpath,figname),'-r300','-dpng','-transparent');
     otherwise
-        error('Unrecognize save option');
+        error('Unrecognized save option');
 end
