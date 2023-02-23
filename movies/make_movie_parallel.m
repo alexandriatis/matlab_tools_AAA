@@ -36,6 +36,8 @@ fprintf('Starting a %i frame movie \n',NT);
 overwrite=1;
 tic;
 %parfor (i=1:NT,10)
+% Note when using parfor, need to use parload_AAA and parsave_AAA to load
+% and save files inside the for loop
 for i=1:NT
     figname = [framename '_' num2str(i,padstr)];
     if ~overwrite && exist([fullfile(figpath,figname) '.png'],'file')
