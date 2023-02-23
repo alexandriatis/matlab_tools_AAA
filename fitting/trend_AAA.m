@@ -15,7 +15,8 @@ if isempty(x)
     x=1:T;
 end
 
-I=~isnan(y);
+I=~isnan(y)&~isinf(y)&~isnan(x)&~isinf(x);
+%I=~isnan(y)&~isinf(y);
 yn = y(I);
 xn = x(I);
 

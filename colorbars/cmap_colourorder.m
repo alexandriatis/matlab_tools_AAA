@@ -1,4 +1,4 @@
-function cmap_colourorder(vals,varargin)
+function cmap = cmap_colourorder(vals,varargin)
 % This function is designed to make a better uniform colormap for lots of
 % lines representing unevenly-spaced values.
 %

@@ -115,7 +115,7 @@ for t=1:NT
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear','extrap');
     end
     y_binned(:,t) = tmp_binned;
-    fprintf('binning %i percent done \n',floor(t/NT*100));
+    %fprintf('binning %i percent done \n',floor(t/NT*100));
 end
 
 switch compcase

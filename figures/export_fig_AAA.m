@@ -15,3 +15,4 @@ switch speed
     otherwise
         error('Unrecognized save option');
 end
+disp(['Saved figure ' figname]);

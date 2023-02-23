@@ -45,5 +45,13 @@ for i=1:size(ydata,1)
     tmp = ydata(i,:);
     trend = trend_AAA(1:length(tmp),tmp,1); % Detrend data before filtering
     tmp = tmp-trend;
-    yfilt(i,:)=filtfilt(b,a,tmp);
+    % To handle edge artifacts, pad the start and end of the data with half
+    % of the cutoff frequency number of points
+    edgepoints=round(sfreq/filtfreq/2);
+    tmp2 = [fliplr(tmp(1:edgepoints)) tmp fliplr(tmp(end-edgepoints+1:end))];
+    tmpfilt = filtfilt(b,a,tmp2);
+    yfilt(i,:)=tmpfilt(edgepoints+1:end-edgepoints);
+    if strcmp(ftype,'low')
+        yfilt(i,:) = yfilt(i,:)+trend;
+    end
 end
