@@ -45,9 +45,9 @@ if ~all(I)
     dataI = data(I);
     if GapFill==0
         if strcmp(Extrap,'extrap')
-            filled = interp1(xI,dataI,x,Interp,'extrap');
+            data = interp1(xI,dataI,x,Interp,'extrap');
         else
-            filled = interp1(xI,dataI,x,Interp,'none');
+            data = interp1(xI,dataI,x,Interp);
         end
     else
         I=find(~isnan(data));
@@ -61,8 +61,7 @@ if ~all(I)
             ytmp=[data(I(Idt(t))) data(I(Idt(t)+1))];
             data(I(Idt(t)):(I(Idt(t)+1)))=interp1(xtmp,ytmp,x(I(Idt(t)):(I(Idt(t)+1))),Interp);
         end
-        filled=data;
     end
 end
-filled = orient_1d_AAA(filled,dor);
+filled = orient_1d_AAA(data,dor);
 end

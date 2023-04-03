@@ -13,7 +13,7 @@ if strcmp(window,'boxcar')==1 % (4/3)*Nb for 50% overlap
 elseif strcmp(window,'triangle')==1 % (16/9)*Nb for 50% overlap
     h = triang(Ns);
 elseif strcmp(window,'hanning')==1 % (36/19)*Nb for 50% overlap
-    h = hann(Ns);
+    h = hanning(Ns);
 elseif strcmp(window,'hamming')==1 % (~1.80)*Nb for 50% overlap
     h = hamming(Ns);
 end

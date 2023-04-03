@@ -1,5 +1,5 @@
 function f = figure_AAA(number,scaling,format)
-
+set(0, 'DefaultLineLineWidth', 1);
 if ~exist('number','var') || isempty(number)
     f=figure;
 else
@@ -21,15 +21,15 @@ end
 
 switch formatnum
     case 1
-        size = [1920 1080];
+        size = [960 540];
     case 2
-        size = [1080 1920];
+        size = [540 960];
     case 3
-        size = [1080 1080];
+        size = [540 540];
 end
 
 if ~exist('scaling','var') || isempty(scaling)
-    scaling = 0.5;
+    scaling = 1;
 end
 size = round(size*scaling);
 screen = get(0,'Screensize');
@@ -41,4 +41,5 @@ while any(position<0) || position(3)>screen(3) || position(4)>screen(4)
 end
 set(f,'Position',[screen(3:4)/2-size/2,size]);
 hold on;
+supersizeme(1.5*scaling);
 end

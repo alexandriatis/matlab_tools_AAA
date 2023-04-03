@@ -9,6 +9,5 @@ function theta2 = rotate_heading_AAA(theta)
 % Alex Andriatis
 % 2022-05-02
 
-theta = fix_angular_direction_AAA(theta,'deg');
-theta2 = -theta-90;
-theta2 = fix_angular_direction_AAA(theta2,'deg');
+theta = -theta-90;
+theta2 = fix_angular_direction_AAA(theta,'deg');

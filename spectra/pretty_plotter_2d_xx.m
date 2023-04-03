@@ -7,8 +7,6 @@ addRequired(P,'ma',@isnumeric);
 
 if length(ky)~=size(ma,1)
    error('Data and y vector must be same length');
-elseif length(ky)==size(ma',1)
-   ma = ma';
 end
 if length(kx)~=size(ma,2)
    error('Data and x vector must be same length');
@@ -30,8 +28,9 @@ plot_title = P.Results.plot_title;
 ma = log10(ma);
 ma(find(ky==0),find(kx==0))=NaN;
 colors; %This is a function of pretty colors I made
-    [C,h]=contourf(kx, ky, ma);
-    h.LineColor = 'none';
+    %[C,h]=contourf(kx, ky, ma);
+    imagescnan(kx,ky,ma);
+    %h.LineColor = 'none';
     c = colorbar;
     c.Label.Interpreter = 'latex';
     %c.Label.String = '$\frac{||U||^2}{N^2M^2 \Delta k \Delta f} ~ [m^3/s]$';

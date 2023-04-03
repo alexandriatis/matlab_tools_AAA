@@ -1,16 +1,24 @@
-%% Calculates spectra with error bars for a variable
+function [f,ma,nu,pars] = spectrum_AAA(variable,time,varargin) 
+% Calculates spectra with error bars for a variable
 % Calculates normalized spectra (squared magnitude of the FFT) using
 % segments of 50% overlaping data with a hanning window (the standard 
 % practice of 221A (Data I))
-
+%
 % For variable Y and timeseries T call 
-%[f,S,eh,el] = spectrum(Y,T) which returns the spectrum S and frequency
-%axis f with upper and lower error bounds eh and el
-
+%[f,S,nu,pars] = spectrum(Y,T) which returns the spectrum S and frequency
+%axis f with degrees of freedom nu and the fraction deviation from
+%paerseval's theorm pars
+%
 %The length of f will depend on the size of M, the number of points per
 %segment, and the timestep used in the timeseries T. 
+%
+% 2023-04-01
+% Added a zero-padding option, padding the end of a timeseries with zeros
+% to the next nth power of 2. In principle this also speeds up the fft.
+%
+% Alex Andriatis
+% 2023-04-01
 
-function [f,ma,nu,pars] = spectrum_AAA(variable,time,varargin) 
 f=[];ma =[]; nu=[];
 
 P=inputParser;
@@ -36,6 +44,12 @@ addParameter(P,'overlap',defaultOverlap,@isnumeric);
 defaultMakePlot=false;
 addParameter(P,'makeplot',defaultMakePlot,@islogical);
 
+defaultZeroPad = 0;
+addParameter(P,'padding',defaultZeroPad,@isnumeric);
+
+defaultRescale = false;
+addParameter(P,'rescale',defaultRescale,@islogical);
+
 parse(P,variable,time,varargin{:});
 variable = P.Results.variable;
 time = P.Results.time;
@@ -44,6 +58,8 @@ numseg = P.Results.numseg;
 window = P.Results.window;
 overlap = P.Results.overlap;
 makeplot = P.Results.makeplot;
+padding = P.Results.padding;
+rescale = P.Results.rescale;
 
 if seglength == length(time) && numseg==1
     s = variable;
@@ -89,30 +105,47 @@ else
     %disp('No windowing');
 end
 
-S = fft(s); %Fourier transform of data
+if padding>0
+    npad=2^(ceil(log2(seglength))+padding-1); % Pad data with approx an equal number of zeros, but make it a power of 2
+else
+    npad=seglength;
+end
+
+S = fft(s,npad,1); %Fourier transform of data
 p = size(S,1); %Vector of points in the frequency space
 N = size(S,2); %Size
 
+dt = mean(diff(time)); % Sampling interval
+Fs = 1/dt; % Sampling frequency
+T = seglength*dt; % Total length of record
+df = Fs/npad; % Frequency increment
+
+% Construct the frequency vector
 if mod(p,2)==0
-    k=0:p/2; %Use only half of the fourier transform since it's symetric about its middle value
+    k=0:p/2; %Use only half of the fourier transform since it's symmetric about its middle value
 else
     k=0:(p-1)/2;
 end
-deltat=mode(diff(time)); %Size of timestep between consecutive measurements
-T=p*deltat; %Total length of record
-f = k/T; %Frequency axis
+f = df*k; % Frequency axis;
+
+% Construct the amplitude equared
 if mod(p,2)==0
    a2=abs(S(1:p/2+1,:)).^2; %Magnitude squared of coefficient
+   a2(2:end-1,:)=2*a2(2:end-1,:); % Double energy except at mean and central value
 else
    a2=abs(S(1:(p+1)/2,:)).^2; %Magnitude squared of coefficient
+   a2(2:end,:)=2*a2(2:end,:); % Double energy except at mean value
 end
 
-a2(2:end,:)=2*a2(2:end,:); %Except at mean and central, energy gets doubled because that's how spectra work
-a2 = a2/p^2; %Normalize by number of points
-a2 = a2*T; %Normalize by frequency increment 1/df = Ndt
+a2 = a2/(seglength*Fs); %Normalize by record length and sampling frequency
 
+% Normalize the resulting spectra by accounting for the amplitude reduction
+% from the window
 if strcmp(window,'hanning')
     a2 = a2*8/3; %Normalize by the degree of freedom contribution due to the hanning window
+end
+
+if strcmp(window,'hanning')
     nu = dof_calculator(seglength,numseg,window,overlap);
     %disp('Hanning window normalization')
 elseif strcmp(window,'none') && overlap~=0
@@ -126,11 +159,16 @@ ma = mean(a2,2,'omitnan'); %Mean across all segments
 
 %Parseval's theorem
 
-varf = sum(ma)/T;
+varf = sum(ma)*df;
 pars = abs(varf - vart)/vart;
 pars_rat = vart/varf; %should be 1
 pars_str = 'Parsevals theorem: Timeseries variance is %0.5f; Spectral sum is %0.5f; Fraction difference is %0.5f; Ratio is %0.5f \n';
-%fprintf(pars_str,vart, varf, pars, pars_rat);
+fprintf(pars_str,vart, varf, pars, pars_rat);
+
+if rescale
+    ma = ma*pars_rat;
+    disp('Rescaling to preserve variance');
+end
 
 % Calculating error bars
 err_high = nu/chi2inv(.05/2,nu); %Lower 5% confidence limit based on a chi2 distribution with nu degrees of freedom
@@ -147,7 +185,7 @@ if makeplot
             'EdgeColor','none'); %Plots the confidence limits in a lighter color
         title('Amplitude Spectrum');
         %ylabel('||T||^2/N \Delta f [\circ C^2 day^{-1}]');
-        ylabel('$\frac{||A||^2}{N^2 \Delta f} ~ [[A]^2*s]$','Interpreter','latex','FontSize',16);
+        ylabel('$\frac{||A||^2}{N \Delta f} ~ [[A]^2*s]$','Interpreter','latex','FontSize',16);
         xlabel('f [Hz]'); 
         xlim([f(1) f(end)]);
         hold off;

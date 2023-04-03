@@ -1,10 +1,20 @@
+function [k,f,ma,nu] = spectrum_2d_test(variable,xdim,ydim,varargin)
+% spectrum_2d computes the two dimensional power spectrum
+%
+% Inputs data, x, and y dimensions
+% Outputs the spectrum, and two frequency dimensions, along with the
+% degrees of freedom and the ration of the deviation away from Parseval's
+% theorem
+%
+% Alex Andriatis
+% 2023-04-02
 
-function [k,f,ma,nu] = spectrum_2d(variable,xdim,ydim,varargin) 
 f=[];k=[];ma =[]; nu=[];
 
 P=inputParser;
 addRequired(P,'variable',@isnumeric);
 addRequired(P,'xdim',@isnumeric);
+
 if size(variable,2)~=length(xdim)
     if size(variable',2)~=length(xdim)
         error('Data and x-dim vector must be same length');
@@ -17,16 +27,27 @@ if size(variable,1)~=length(ydim)
    error('Data and y-dim vector must be same length');
 end
 
+defaultSegSize = size(variable);
+addParameter(P,'segsize',defaultSegSize,@isnumeric);
 
-% defaultSegLength = length(time);
-% addParameter(P,'seglength',defaultSegLength,@isnumeric);
-% defaultNumSeg = 1;
-% addParameter(P,'numseg',defaultNumSeg,@isnumeric);
-% defaultWindow = 'none';
-% checkString=@(s) any(strcmp(s,{'none','hanning','triangle'}));
-% addParameter(P,'window',defaultWindow,checkString);
-% defaultOverlap=0;
-% addParameter(P,'overlap',defaultOverlap,@isnumeric);
+defaultNumSeg = 0;
+addParameter(P,'numseg',defaultNumSeg,@isnumeric);
+
+defaultWindow = 'none';
+checkString=@(s) any(strcmp(s,{'none','hanning','triangle'}));
+addParameter(P,'window',defaultWindow,checkString);
+
+defaultOverlap=0;
+addParameter(P,'overlap',defaultOverlap,@isnumeric);
+
+defaultMakePlot=false;
+addParameter(P,'makeplot',defaultMakePlot,@islogical);
+
+defaultZeroPad = 0;
+addParameter(P,'padding',defaultZeroPad,@isnumeric);
+
+defaultRescale = false;
+addParameter(P,'rescale',defaultRescale,@islogical);
 
 defaultMakePlot=false;
 addParameter(P,'makeplot',defaultMakePlot,@islogical);
@@ -39,46 +60,36 @@ parse(P,variable,xdim,ydim,varargin{:});
 variable = P.Results.variable;
 xdim = P.Results.xdim;
 ydim = P.Results.ydim;
-% seglength = P.Results.seglength;
-% numseg = P.Results.numseg;
-% window = P.Results.window;
-% overlap = P.Results.overlap;
+segsize = P.Results.segsize;
+numseg = P.Results.numseg;
+window = P.Results.window;
+overlap = P.Results.overlap;
 makeplot = P.Results.makeplot;
+padding = P.Results.padding;
+rescale = P.Results.rescale;
 portion = P.Results.portion;
 
-% Skipping overlapping in 2D spectra for now
-% if seglength == length(time) && numseg==1
-%     s = variable;
-%     if size(s,1)==1
-%         s = s';
-%     end
-%     %disp('Full timeseries spectrum');
-% elseif seglength ~= length(time) && numseg ==1
-%     s = buffer(variable,seglength,round(seglength*overlap),'nodelay'); %Partitions data into vectors of length seglength, with some overlap
-%     if ~all(s(:,end))
-%         s(:,end)=[]; % Removes the last vector since it might be partially empty
-%     end
-%     %disp('Segmenting according to seglength');
-%     seglength = size(s,1);
-%     numseg = size(s,2);
-% elseif seglength == length(time) && numseg ~=1
-%     seglength = ceil(length(time)/(numseg*(1-overlap)+overlap));
-%     s = buffer(variable,seglength,round(seglength*overlap),'nodelay'); %Partitions data into vectors of length seglength, with some overlap
-%     if ~all(s(:,end))
-%         s(:,end)=[]; % Removes the last vector since it might be partially empty
-%     end
-%     %disp('Segmenting according to numseg');
-%     seglength = size(s,1);
-%     numseg = size(s,2);
-% elseif seglength ~=length(time) && numseg ~=1
-%     s = buffer(variable,seglength,round(seglength*overlap),'nodelay'); %Partitions data into vectors of length seglength, with some overlap
-%     s = s(:,1:numseg);
-%     %disp('Segmenting according to seglength and numseg');
-%     seglength = size(s,1);
-%     numseg = size(s,2);
-% end
-s = variable;
-s = detrend_2d(s); %Removes linear plane fit as described in https://www.mathworks.com/matlabcentral/fileexchange/33192-flatten-a-data-in-2d
+
+% Segmenting and overlap
+
+if all(segsize == size(variable)) && numseg==0
+    s = variable;
+    disp('Full matrix spectrum');
+    numseg = 1;
+else
+    s = get_submatrix_AAA(variable,'segsize',segsize,'numseg',numseg,'overlap',0.5);
+    disp('Subsampling matrix');
+    numseg = size(s,3);
+end
+
+% Ok now s is potentially a NYxNXxNS matrix
+
+% Detrend each entry in s
+for n=1:numseg
+    s(:,:,n)=detrend_2d(squeeze(s(:,:,n)));%Removes linear plane fit as described in https://www.mathworks.com/matlabcentral/fileexchange/33192-flatten-a-data-in-2d
+end
+
+% Compute variance before windowing
 
 vart = var(s,0,[1 2]);
 
