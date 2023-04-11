@@ -1,11 +1,24 @@
-function [ma,kx,ky,nu,npad] = spectrum_2d_test(variable,xdim,ydim,varargin)
+function [ma,kx,ky,nu,npad] = spectrum_2d_AAA(variable,xdim,ydim,varargin)
 % spectrum_2d computes the two dimensional power spectrum
 %
 % Inputs data, x, and y dimensions
 % Outputs the spectrum, and two frequency dimensions, along with the
-% degrees of freedom and the ration of the deviation away from Parseval's
+% degrees of freedom and the ratio of the deviation away from Parseval's
 % theorem
 %
+% Examples:
+% [ma,kx,ky] = spectrum_2d_test(zdata,xdata,ydata);
+% Outputs the 2D PSD of zdata, with positive and negative frequencies in
+% both directions
+%
+% [ma,kx,ky] = spectrum_2d_test(zdata,xdata,ydata,'window','hanning','segsize',floor(size(zdata)/3),'rescale',true,'overlap',0.5,'padding',2,'includemean',false);
+% Applies hanning windows to each segment, makes segments that are 1/3 the
+% size of the input matrix zdata, matches the total variance to the
+% variance of the input submatrices, applies 50% overlap to segments - each
+% point is sampled twice except the edes, zero-pads to the next highest
+% power of two, NaNs central values that are lower frequency than the
+% fundamental, and the mean.
+% 
 % Alex Andriatis
 % 2023-04-02
 
@@ -56,6 +69,9 @@ addParameter(P,'portion',defaultPortion,checkString);
 defaultIncludeMean = false;
 addParameter(P,'includemean',defaultIncludeMean,@islogical);
 
+defaultDiagnostics = false;
+addParameter(P,'diagnostics',defaultDiagnostics,@islogical);
+
 parse(P,variable,xdim,ydim,varargin{:});
 variable = P.Results.variable;
 xdim = P.Results.xdim;
@@ -69,24 +85,24 @@ padding = P.Results.padding;
 rescale = P.Results.rescale;
 portion = P.Results.portion;
 includemean = P.Results.includemean;
-
+diagnostics = P.Results.diagnostics;
 
 % Segmenting and overlap
 
 if all(segsize == size(variable)) && numseg==0
     s = variable;
-    disp('Full matrix spectrum');
+    if diagnostics; disp('Full matrix spectrum'); end
     numseg = 1;
 else
     s = get_submatrix_AAA(variable,'segsize',segsize,'numseg',numseg,'overlap',overlap);
-    disp('Subsampling matrix');
+    if diagnostics; disp('Subsampling matrix'); end
     numseg = size(s,3);
 end
 segsize=size(s,[1 2]);
 % Ok now s is potentially a NYxNXxNS matrix
 
 % Detrend each entry in s
-disp(['Detrending ' num2str(numseg) ' slices']);
+if diagnostics; disp(['Detrending ' num2str(numseg) ' slices']); end
 for n=1:numseg
     s(:,:,n)=detrend_2d(squeeze(s(:,:,n)));%Removes linear plane fit as described in https://www.mathworks.com/matlabcentral/fileexchange/33192-flatten-a-data-in-2d
     %disp(['Detrending Slice ' num2str(n)]);
@@ -100,28 +116,28 @@ if strcmp(window,'hanning')
     %Hanning window, a data analysis tool to emphasize central values, reducing spectral noise from mismatched segments
     hannwin_2d = hanning(size(s,1))*hanning(size(s,2))';
     s=s.*repmat(hannwin_2d,[1 1 numseg]);
-    disp('Hanning window applied');
+    if diagnostics; disp('Hanning window applied'); end
 elseif ~strcmp(window,'none')
     error('Window not recognized');
 else
-    disp('No windowing');
+    if diagnostics; disp('No windowing'); end
 end
 
 if padding>0
     npad_y=2^(ceil(log2(size(s,1)))+padding-1); % Pad data to the next (padding-1)th power of 2
     npad_x=2^(ceil(log2(size(s,2)))+padding-1); % Pad data to the next (padding-1)th power of 2
-    disp(['Padding to ' num2str(npad_y) ' x ' num2str(npad_x)]);
+    if diagnostics; disp(['Padding to ' num2str(npad_y) ' x ' num2str(npad_x)]); end
 else
 	npad_y = size(s,1);
     npad_x = size(s,2);
-    disp('No padding');
+    if diagnostics; disp('No padding'); end
 end
 
 
 % 2D Fourier Transform
 S=fftshift(fft2(squeeze(s(:,:,1)),npad_y,npad_x)); % Zero-centered 2D fft
 S=zeros(size(S,1),size(S,2),numseg);
-disp(['Transforming ' num2str(numseg) ' slices']);
+if diagnostics; disp(['Transforming ' num2str(numseg) ' slices']); end
 for n=1:numseg
     S(:,:,n)=fftshift(fft2(squeeze(s(:,:,n)),npad_y,npad_x)); % Zero-centered 2D fft
     %disp(['Transforming Slice ' num2str(n)]);
@@ -191,7 +207,7 @@ end
 % from the window
 if strcmp(window,'hanning')
     a2 = a2*(8/3).^2; %Normalize by the degree of freedom contribution due to the hanning window
-    disp(['Rescaling for hanning window']);
+    if diagnostics; disp(['Rescaling for hanning window']); end
 end
 
 ma = mean(a2,3,'omitnan'); %Mean across all segments
@@ -205,11 +221,11 @@ varf = sum(ma,'all')*dfx*dfy;
 pars = abs(varf - vart)/vart;
 pars_rat = vart/varf; %should be 1
 pars_str = 'Parsevals theorem: Timeseries variance is %0.5f; Spectral sum is %0.5f; Fraction difference is %0.5f; Ratio is %0.5f \n';
-fprintf(pars_str,vart, varf, pars, pars_rat);
+if diagnostics; fprintf(pars_str,vart, varf, pars, pars_rat); end
 
 if rescale
     ma = ma*pars_rat;
-    disp('Rescaling to preserve variance');
+    if diagnostics; disp('Rescaling to preserve variance'); end
 end
 
 % Truncate data at the fundamental frequency, to remove unreal zero-padded

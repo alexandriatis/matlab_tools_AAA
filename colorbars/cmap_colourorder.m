@@ -74,6 +74,9 @@ end
 [vals,Isort] = sort(vals);
 vlims = [min(vals) max(vals)];
 dv = min(diff(vals));
+if abs(range(vlims)/dv)>100
+    dv=mean(diff(vals));
+end
 newval = vlims(1):dv:vlims(2);
 numcolors = length(newval);
 
@@ -115,7 +118,7 @@ end
 c = cmap(Ivals,:);
 c = c(Isort,:);
 colororder(ax,c);
-colormap(ax,cmap)
+colormap(ax,cmap);
 caxis(vlims)
 end
 

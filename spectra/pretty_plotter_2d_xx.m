@@ -30,6 +30,7 @@ ma(find(ky==0),find(kx==0))=NaN;
 colors; %This is a function of pretty colors I made
     %[C,h]=contourf(kx, ky, ma);
     imagescnan(kx,ky,ma);
+    set(gca,'YDir','Normal');
     %h.LineColor = 'none';
     c = colorbar;
     c.Label.Interpreter = 'latex';

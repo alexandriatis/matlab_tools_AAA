@@ -1,4 +1,4 @@
-function [f,ma,nu,pars] = spectrum_AAA(variable,time,varargin) 
+function [ma,f,nu,pars] = spectrum_AAA(variable,time,varargin) 
 % Calculates spectra with error bars for a variable
 % Calculates normalized spectra (squared magnitude of the FFT) using
 % segments of 50% overlaping data with a hanning window (the standard 
@@ -50,6 +50,12 @@ addParameter(P,'padding',defaultZeroPad,@isnumeric);
 defaultRescale = false;
 addParameter(P,'rescale',defaultRescale,@islogical);
 
+defaultIncludeMean = false;
+addParameter(P,'includemean',defaultIncludeMean,@islogical);
+
+defaultDiagnostics = false;
+addParameter(P,'diagnostics',defaultDiagnostics,@islogical);
+
 parse(P,variable,time,varargin{:});
 variable = P.Results.variable;
 time = P.Results.time;
@@ -60,19 +66,22 @@ overlap = P.Results.overlap;
 makeplot = P.Results.makeplot;
 padding = P.Results.padding;
 rescale = P.Results.rescale;
+includemean = P.Results.includemean;
+diagnostics = P.Results.diagnostics;
 
 if seglength == length(time) && numseg==1
     s = variable;
     if size(s,1)==1
         s = s';
+        if diagnostics; disp('Flipping input vector'); end
     end
-    %disp('Full timeseries spectrum');
+    if diagnostics; disp('Full timeseries spectrum'); end
 elseif seglength ~= length(time) && numseg ==1
     s = buffer(variable,seglength,round(seglength*overlap),'nodelay'); %Partitions data into vectors of length seglength, with some overlap
     if ~all(s(:,end))
         s(:,end)=[]; % Removes the last vector since it might be partially empty
     end
-    %disp('Segmenting according to seglength');
+    if diagnostics; disp('Segmenting according to seglength'); end
     seglength = size(s,1);
     numseg = size(s,2);
 elseif seglength == length(time) && numseg ~=1
@@ -81,13 +90,13 @@ elseif seglength == length(time) && numseg ~=1
     if ~all(s(:,end))
         s(:,end)=[]; % Removes the last vector since it might be partially empty
     end
-    %disp('Segmenting according to numseg');
+    if diagnostics; disp('Segmenting according to numseg'); end
     seglength = size(s,1);
     numseg = size(s,2);
 elseif seglength ~=length(time) && numseg ~=1
     s = buffer(variable,seglength,round(seglength*overlap),'nodelay'); %Partitions data into vectors of length seglength, with some overlap
     s = s(:,1:numseg);
-    %disp('Segmenting according to seglength and numseg');
+    if diagnostics; disp('Segmenting according to seglength and numseg'); end
     seglength = size(s,1);
     numseg = size(s,2);
 end
@@ -98,11 +107,11 @@ vart = mean(sum(s.^2)/size(s,1));
 if strcmp(window,'hanning')
     hannwin = hanning(seglength)*ones(1,size(s,2)); %Hanning window, a data analysis tool to emphasize central values, reducing spectral noise from mismatched segments
     s = s.*hannwin; %Scales the data by the hanning window
-    %disp('Hanning window applied');
+    if diagnostics; disp('Hanning window applied'); end
 elseif ~strcmp(window,'none')
     error('Window not recognized');
 else
-    %disp('No windowing');
+    if diagnostics; disp('No windowing'); end
 end
 
 if padding>0
@@ -119,6 +128,7 @@ dt = mean(diff(time)); % Sampling interval
 Fs = 1/dt; % Sampling frequency
 T = seglength*dt; % Total length of record
 df = Fs/npad; % Frequency increment
+Ffun = 1/T; % Fundamental frequency
 
 % Construct the frequency vector
 if mod(p,2)==0
@@ -143,17 +153,18 @@ a2 = a2/(seglength*Fs); %Normalize by record length and sampling frequency
 % from the window
 if strcmp(window,'hanning')
     a2 = a2*8/3; %Normalize by the degree of freedom contribution due to the hanning window
+    if diagnostics; disp('Normalizing by hanning window'); end
 end
 
 if strcmp(window,'hanning')
     nu = dof_calculator(seglength,numseg,window,overlap);
-    %disp('Hanning window normalization')
+    if diagnostics; disp('Hanning window dof'); end
 elseif strcmp(window,'none') && overlap~=0
     nu = dof_calculator(seglength,numseg,'boxcar',overlap);
-    %disp('Degrees of freedom for overlaping square segments')
+    if diagnostics; disp('Degrees of freedom for overlaping square segments'); end
 elseif overlap==0
     nu = N*2; %for no overlap
-    %disp('Degrees of freedom for non-overlaping square segments')
+    if diagnostics; disp('Degrees of freedom for non-overlaping square segments'); end
 end
 ma = mean(a2,2,'omitnan'); %Mean across all segments
 
@@ -163,11 +174,20 @@ varf = sum(ma)*df;
 pars = abs(varf - vart)/vart;
 pars_rat = vart/varf; %should be 1
 pars_str = 'Parsevals theorem: Timeseries variance is %0.5f; Spectral sum is %0.5f; Fraction difference is %0.5f; Ratio is %0.5f \n';
-fprintf(pars_str,vart, varf, pars, pars_rat);
+if diagnostics; fprintf(pars_str,vart, varf, pars, pars_rat); end
 
 if rescale
     ma = ma*pars_rat;
-    disp('Rescaling to preserve variance');
+    if diagnostics; disp('Rescaling to preserve variance'); end
+end
+
+% Truncate data at the fundamental frequency, to remove unreal zero-padded
+% values
+Ifun=find(f>=Ffun-eps,1);
+if ~includemean
+    f=f(Ifun:end);
+    ma=ma(Ifun:end);
+    if diagnostics; disp('Cutting output to fundamental frequency'); end
 end
 
 % Calculating error bars

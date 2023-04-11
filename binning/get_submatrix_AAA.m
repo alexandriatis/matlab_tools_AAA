@@ -94,6 +94,10 @@ if any(segsize<2)
     error('Requested segment size is too small, must be at least 2x2 matrix');
 end
 
+if overlap<0 || overlap>1
+    error('Overlap must be between 0 and 1');
+end
+
 % Define coordinates of top-left bins, Run until the desired number of segments is generatred. 
 tl_coord=zeros(0,2);
 NS=-1;
