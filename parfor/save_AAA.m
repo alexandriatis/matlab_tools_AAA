@@ -1,4 +1,4 @@
-function parsave_AAA(savepath,savename,data)
+function save_AAA(savepath,savename,data)
 % This function saves data within a parfor loop
 %
 % Alex Andriatis

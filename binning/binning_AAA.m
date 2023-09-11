@@ -1,4 +1,4 @@
-function [y_binned,x_center]=binning_AAA(x,y,bins,varargin)
+function [y_binned,x_center,count_binned]=binning_AAA(x,y,bins,varargin)
 % This fucntion is designed to bin data 
 %
 % Alex Andriatis
@@ -43,6 +43,10 @@ addParameter(P,'InterpFill',defaultInterpFill,checkString);
 defaultWeights = 1;
 addParameter(P,'weights',defaultWeights,@isnumeric);
 
+defaultOperation = 'mean';
+checkString=@(s) any(strcmp(s,{'mean','sum','min','max'}));
+addParameter(P,'operation',defaultOperation,checkString);
+
 parse(P,x,y,bins,varargin{:});
 x = P.Results.x;
 y = P.Results.y;
@@ -50,6 +54,7 @@ bins = P.Results.bins;
 BinCentering = P.Results.BinCentering;
 InterpFill = P.Results.InterpFill;
 weights = P.Results.weights;
+operation=P.Results.operation;
 
 use_edges=0;
 if exist('option','var')
@@ -152,8 +157,19 @@ switch compcase
         weights = weights(I2,:);
 end
 y_binned = NaN(NB,NT);
+ycount = ones(size(y,1),1);
+count_binned = accumarray(bin_ind,ycount,[NB,1],@(x)sum(x),0);
 for t=1:NT
-    tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)sum(x,'omitnan'),NaN)./accumarray(bin_ind,weights(:,t),[NB,1],@(x)sum(x,'omitnan'),NaN);
+    switch operation
+        case {'mean'}
+            tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)sum_AAA(x,'omitnan'),NaN)./accumarray(bin_ind,weights(:,t).*~isnan(y(:,t)),[NB,1],@(x)sum_AAA(x,'omitnan'),NaN);
+        case {'sum'}
+            tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)sum_AAA(x,'omitnan'),NaN);
+        case {'min'}
+            tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)min_AAA(x,'omitnan'),NaN);
+        case {'max'}
+            tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)max_AAA(x,'omitnan'),NaN);
+    end
     if strcmp(InterpFill,'interp') && sum(~isnan(tmp_binned))>=2
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear');
     elseif strcmp(InterpFill,'extrap') && sum(~isnan(tmp_binned))>=2
@@ -170,6 +186,7 @@ switch compcase
         y_binned = y_binned';
 end
 x_center = orient_1d_AAA(x_center,xorient);
+count_binned = orient_1d_AAA(count_binned,xorient);
 end
 
 

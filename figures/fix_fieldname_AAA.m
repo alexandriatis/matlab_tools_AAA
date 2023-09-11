@@ -1,4 +1,4 @@
-function flabel = fix_fname_AAA(tlabel)
+function flabel = fix_fieldname_AAA(tlabel)
 % function tlabel cleans up strings that are set as filenames in figures.
 % The primary function is to replace spaces with underscores, since those
 % are commonly used in title names which I might not want.
@@ -10,4 +10,5 @@ function flabel = fix_fname_AAA(tlabel)
 
 flabel = strrep(tlabel, ' ', '_');
 flabel = strrep(flabel, '.mat', '');
+flabel = regexprep(flabel,'^_','','emptymatch');
 end

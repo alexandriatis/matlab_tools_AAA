@@ -18,4 +18,6 @@ function c = colorbar_AAA(cpos)
         cpos = c.Position;
     end
     set(c,'Units','normalized','position',cpos);
+    set(c.Label,'Interpreter','Latex');
+    set(c,'TickLabelInterpreter','Latex');
 end

@@ -18,9 +18,10 @@ if ~exist('cutfrac','var') || isempty(cutfrac)
 end
 ncut=NC*cutfrac;
 I=[round(NC/2-ncut/2) round(NC/2+ncut/2)];
-for i=1:3
-    colors(I(1):I(2),i)=interp1_AAA(I,colors(I,i),I(1):I(2));
-end
+colors(I(1):I(2),:)=interp1_AAA(I,colors(I,:),[I(1):I(2)]');
+% for i=1:3
+%     colors(I(1):I(2),i)=interp1_AAA(I,colors(I,i),I(1):I(2));
+% end
 
 if ~exist('n','var') || isempty(n)
     n=NC;

@@ -18,7 +18,7 @@ switch speed
             print(f,savepath,'-dpng',resolution);
         end
         if any(contains(format,'pdf'))
-            print(f,savepath,'-dpdf',resolution);
+            print(f,savepath,'-dpdf',resolution,'-fillpage');
         end
     case 'fancy'
         resolution = '-r300';

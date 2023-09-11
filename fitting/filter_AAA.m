@@ -47,7 +47,7 @@ for i=1:size(ydata,1)
     tmp = tmp-trend;
     % To handle edge artifacts, pad the start and end of the data with half
     % of the cutoff frequency number of points
-    edgepoints=round(sfreq/filtfreq/2);
+    edgepoints=round(sfreq/filtfreq(1)/2);
     tmp2 = [fliplr(tmp(1:edgepoints)) tmp fliplr(tmp(end-edgepoints+1:end))];
     tmpfilt = filtfilt(b,a,tmp2);
     yfilt(i,:)=tmpfilt(edgepoints+1:end-edgepoints);

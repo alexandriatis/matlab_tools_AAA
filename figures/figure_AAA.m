@@ -1,45 +1,102 @@
-function f = figure_AAA(number,scaling,format)
-set(0, 'DefaultLineLineWidth', 1);
-if ~exist('number','var') || isempty(number)
+function [f,scaling]=figure_AAA(varargin)
+% paperfigure_ams initializes a figure window with a fixed size that makes
+% consistent figures for publication.
+%
+% AMS requires figures to be in either 19pc or 39pc
+% 1pc = 12 pt = 0.166 inches, 1 pt = 1/72.27 inches
+% 1 column = 228 pt = 3.1548 inches
+% 2 column = 468 pt = 6.4757 inches
+% Alternative sizes are 27pc and 33pc
+% 1 plus = 324 pt
+% 2 minus = 396 pt
+%
+% 2023-08-05
+%
+% Adapted for normal figure plottting with reduced axes sizes so that I can
+% see more stuff when plotting a figure
+% 2023-09-01
+%
+% Changed width option to just be expressed in pc = pt/12
+% Standard sizes: 19, 27, 33, 39 pc
+% 2023-09-11
+% Alex Andriatis
+
+P=inputParser;
+
+addOptional(P,'n',0);
+
+defaultWidth=19; % Expressed in pc = 12 pt = 12/72.72 inches
+addParameter(P,'width',defaultWidth,@isnumeric);
+
+defaultAspect=0.8;
+addParameter(P,'aspect',defaultAspect,@isnumeric);
+
+screen = get(0,'Screensize');
+defaultScaling=min(max(1,round((screen(3)/560)/2,1)),max(1,round((screen(4)/420)/2,1))); % Default figure half screen width or height
+addParameter(P,'scaling',defaultScaling,@isnumeric);
+
+parse(P,varargin{:});
+n = P.Results.n;
+width=P.Results.width;
+aspect=P.Results.aspect;
+scaling=P.Results.scaling;
+
+fontsize=6;
+
+if n==0
     f=figure;
 else
-    f=figure(number);
-end
-clf;
-
-formatnum = 1;
-if exist('format','var')
-    switch format
-        case 'long'
-            formatnum=1;
-        case 'tall'
-            formatnum=2;
-        case 'square'
-            formatnum=3;
-    end
+    f=figure(n);
 end
 
-switch formatnum
-    case 1
-        size = [960 540];
-    case 2
-        size = [540 960];
-    case 3
-        size = [540 540];
+un=get(f,'units');
+set(f,'units','pixels');
+
+width = width*12; % Convert pc to pt;
+
+height=width*aspect;
+
+% Limit height to page height
+% Max text height 8.5 inches = 614 pt
+maxheight=614;
+if height>maxheight
+    height=maxheight;
 end
 
-if ~exist('scaling','var') || isempty(scaling)
-    scaling = 1;
+fsize=[width height];
+fsize=round(fsize*scaling);
+
+% Limit height and width to fit in the scren it's in while preserving
+% aspect ratio
+
+if fsize(1)>screen(3)
+    width=screen(3);
+    height=width*aspect;
+    scaling=scaling*width/fsize(1);
+    fsize=[width height];
+    fsize=round(fsize*scaling);
 end
-size = round(size*scaling);
-screen = get(0,'Screensize');
-position = round([screen(3:4)/2-size/2,size]);
-while any(position<0) || position(3)>screen(3) || position(4)>screen(4)
-    scaling = 0.95*scaling;
-    size = round(size*scaling);
-    position = round([screen(3:4)/2-size/2,size]);
+if fsize(2)>screen(4)
+    height=screen(4);
+    width=height./aspect;
+    scaling=scaling*width/fsize(1);
+    fsize=[width height];
+    fsize=round(fsize*scaling);
 end
-set(f,'Position',[screen(3:4)/2-size/2,size]);
-hold on;
-supersizeme(1.5*scaling);
+
+set(f,'Position',[screen(3:4)/2-fsize/2,fsize]);
+
+set(f,'units',un);
+
+set(groot,'defaultaxesfontsize',round(fontsize*scaling));
+set(groot,'defaulttextfontsize',round(fontsize*scaling));
+set(groot,'defaultaxeslinewidth',round(0.5*scaling));
+set(groot,'defaultlinelinewidth',round(0.75*scaling));
+
+% Set text interpreter to Latex by default
+set(groot,'defaulttextInterpreter','latex');
+set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+set(groot, 'defaultLegendInterpreter','latex');
+%set(f,'Resize','off');
+
 end
