@@ -1,25 +1,34 @@
 function [f,scaling]=figure_AAA(varargin)
-% paperfigure_ams initializes a figure window with a fixed size that makes
-% consistent figures for publication.
-%
-% AMS requires figures to be in either 19pc or 39pc
+% figure_AAA initializes a scaled figure that is useful for making publication figures
+% Standard AMS figure sizes are 19, 27, 33, or 39pc where
 % 1pc = 12 pt = 0.166 inches, 1 pt = 1/72.27 inches
 % 1 column = 228 pt = 3.1548 inches
 % 2 column = 468 pt = 6.4757 inches
-% Alternative sizes are 27pc and 33pc
-% 1 plus = 324 pt
-% 2 minus = 396 pt
 %
-% 2023-08-05
+% Scaling the figure allows plotting on large monitors while preserving
+% font and line sizes that are consistent with a given figure width
 %
-% Adapted for normal figure plottting with reduced axes sizes so that I can
-% see more stuff when plotting a figure
-% 2023-09-01
+% Optional inputs:
+% n: A number or figure handle to existing figure. Identical usage to
+% figure(n). Leaving it blank will create a new figure.
+% width: The width of desired figure in pc
+% scaling: Scaling up the figure relative do default size 560 x 420
+% aspect: Figure aspect ratio height / width, default 0.8
 %
-% Changed width option to just be expressed in pc = pt/12
-% Standard sizes: 19, 27, 33, 39 pc
-% 2023-09-11
+% Ouptuts:
+% f: Handle to the created figure
+% scaling: If the scaling is automatically adjusted, returns new scaling
+% for further plotting
+%
+% Examples:
+%   figure_AAA; Creates a new figure which is half the screen size
+%   figure_AAA(2); Creates figure 2 if it doesn't yet exist
+%   figrue_AAA(f); Modifies existing figure f
+%   figure_AAA(0,'width',19,'aspect',0.8,'scaling',2); % Creates a new
+%   figure with default values
+%
 % Alex Andriatis
+% 2023-09-11
 
 P=inputParser;
 
