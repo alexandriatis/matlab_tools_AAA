@@ -2,8 +2,8 @@ function [f,scaling]=figure_AAA(varargin)
 % figure_AAA initializes a scaled figure that is useful for making publication figures
 % Standard AMS figure sizes are 19, 27, 33, or 39pc where
 % 1pc = 12 pt = 0.166 inches, 1 pt = 1/72.27 inches
-% 1 column = 228 pt = 3.1548 inches
-% 2 column = 468 pt = 6.4757 inches
+% 1 column = 19 pc = 228 pt = 3.1548 inches
+% 2 column = 39 pc = 468 pt = 6.4757 inches
 %
 % Scaling the figure allows plotting on large monitors while preserving
 % font and line sizes that are consistent with a given figure width
@@ -81,16 +81,14 @@ fsize=round(fsize*scaling);
 if fsize(1)>screen(3)
     width=screen(3);
     height=width*aspect;
-    scaling=scaling*width/fsize(1);
-    fsize=[width height];
-    fsize=round(fsize*scaling);
+    scaling=scaling*fsize(1)/width;
+    fsize=round([width height]);
 end
 if fsize(2)>screen(4)
     height=screen(4);
     width=height./aspect;
-    scaling=scaling*width/fsize(1);
-    fsize=[width height];
-    fsize=round(fsize*scaling);
+    scaling=scaling*fsize(1)/width;
+    fsize=round([width height]);
 end
 
 set(f,'Position',[screen(3:4)/2-fsize/2,fsize]);
@@ -106,6 +104,11 @@ set(groot,'defaultlinelinewidth',round(0.75*scaling));
 set(groot,'defaulttextInterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
 set(groot, 'defaultLegendInterpreter','latex');
-%set(f,'Resize','off');
+
+% Prevent accidental figure resizing
+% set(f,'Resize','off');
+
+% Automatically draw box
+% hold on; grid on; box on;
 
 end
