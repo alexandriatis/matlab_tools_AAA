@@ -11,8 +11,8 @@ function [f,scaling]=figure_AAA(varargin)
 % Optional inputs:
 % n: A number or figure handle to existing figure. Identical usage to
 % figure(n). Leaving it blank will create a new figure.
-% width: The width of desired figure in pc
-% scaling: Scaling up the figure relative do default size 560 x 420
+% width: The width of desired figure in pixels (default 560)
+% scaling: Scaling up the figure relative to default size 560 x 420
 % aspect: Figure aspect ratio height / width, default 0.8
 %
 % Ouptuts:
@@ -34,14 +34,14 @@ P=inputParser;
 
 addOptional(P,'n',0);
 
-defaultWidth=19; % Expressed in pc = 12 pt = 12/72.72 inches
+defaultWidth=560; % Expressed in pt = 1/72.72 inches
 addParameter(P,'width',defaultWidth,@isnumeric);
 
-defaultAspect=0.8;
+defaultAspect=0.75;
 addParameter(P,'aspect',defaultAspect,@isnumeric);
 
 screen = get(0,'Screensize');
-defaultScaling=min(max(1,round((screen(3)/560)/2,1)),max(1,round((screen(4)/420)/2,1))); % Default figure half screen width or height
+defaultScaling=min(max(1,round((screen(3)/560)*0.5,1)),max(1,round((screen(4)/420)*0.5,1))); % Default figure 1/2 screen width or height
 addParameter(P,'scaling',defaultScaling,@isnumeric);
 
 parse(P,varargin{:});
@@ -50,7 +50,7 @@ width=P.Results.width;
 aspect=P.Results.aspect;
 scaling=P.Results.scaling;
 
-fontsize=6;
+fontsize=12;
 
 if n==0
     f=figure;
@@ -60,8 +60,6 @@ end
 
 un=get(f,'units');
 set(f,'units','pixels');
-
-width = width*12; % Convert pc to pt;
 
 height=width*aspect;
 
@@ -97,8 +95,8 @@ set(f,'units',un);
 
 set(groot,'defaultaxesfontsize',round(fontsize*scaling));
 set(groot,'defaulttextfontsize',round(fontsize*scaling));
-set(groot,'defaultaxeslinewidth',round(0.5*scaling));
-set(groot,'defaultlinelinewidth',round(0.75*scaling));
+set(groot,'defaultaxeslinewidth',round(1*scaling));
+set(groot,'defaultlinelinewidth',round(1.5*scaling));
 
 % Set text interpreter to Latex by default
 set(groot,'defaulttextInterpreter','latex');
@@ -109,6 +107,6 @@ set(groot, 'defaultLegendInterpreter','latex');
 % set(f,'Resize','off');
 
 % Automatically draw box
-% hold on; grid on; box on;
+hgb;
 
 end

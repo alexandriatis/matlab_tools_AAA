@@ -13,7 +13,7 @@ function postfix_paperfigure_ams_AAA(f,scaling)
 % Second function to fix figure properties after it is plotted
 % 2023-08-07
 
-fontsize=10;
+fontsize=7;
 
 if ~exist('f','var')
     f=gcf;
@@ -47,6 +47,7 @@ lg=findall(f,'Type','Legend');
 NLG=length(lg);
 for i=1:NLG
     lg(i).FontSize=fontsize*scaling;
+    lg(i).LineWidth=0.5*scaling;
 end
 
 

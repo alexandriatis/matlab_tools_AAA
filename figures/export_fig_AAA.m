@@ -11,6 +11,7 @@ end
 switch speed
     case 'fast'
         resolution = '-r150';
+        %resolution = '-r300';
         if any(contains(format,'fig'))
             savefig(f,savepath,'compact');
         end

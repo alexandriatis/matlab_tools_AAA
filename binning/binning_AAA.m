@@ -126,9 +126,10 @@ x = column_AAA(x);
 bins = column_AAA(bins);
 [x,I]=sort(x);
 if strcmp(BinCentering,'center')
-    edges(1)=bins(1);
-    edges(2:length(bins))=bins(1:end-1)+diff(bins)/2;
-    edges(length(bins)+1)=bins(end);
+    dbins=diff(bins);
+    edges(1)=bins(1)-dbins(1)/2;
+    edges(2:length(bins))=bins(1:end-1)+dbins/2;
+    edges(length(bins)+1)=bins(end)+dbins(end)/2;
     x_center = bins;
 elseif strcmp(BinCentering,'edges')
     edges = bins;
@@ -159,6 +160,7 @@ end
 y_binned = NaN(NB,NT);
 ycount = ones(size(y,1),1);
 count_binned = accumarray(bin_ind,ycount,[NB,1],@(x)sum(x),0);
+fracdone=0;
 for t=1:NT
     switch operation
         case {'mean'}
@@ -176,7 +178,11 @@ for t=1:NT
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear','extrap');
     end
     y_binned(:,t) = tmp_binned;
-    %fprintf('binning %i percent done \n',floor(t/NT*100));
+    fracdone2=floor(t/NT*100);
+    if fracdone2-fracdone>0 && t~=1
+        fprintf('binning %i percent done \n',floor(t/NT*100));
+        fracdone=fracdone2;
+    end
 end
 
 switch compcase

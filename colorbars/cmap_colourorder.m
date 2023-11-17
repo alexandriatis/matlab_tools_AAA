@@ -114,7 +114,7 @@ end
 
 %Create colormap corresponding to the values given
 
-[~,Ivals] = closest(newval,vals);
+[~,Ivals] = closest_AAA(newval,vals);
 c = cmap(Ivals,:);
 c = c(Isort,:);
 colororder(ax,c);

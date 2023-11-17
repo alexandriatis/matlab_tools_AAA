@@ -10,7 +10,7 @@ function ind = subset_AAA(vec,val,inclusive)
 %
 % Alex Andriatis
 % 2023-05-29
-if ~exist('exclude','var');
+if ~exist('inclusive','var');
     inclusive=[1 1];
 end
 if all(inclusive)

@@ -13,7 +13,7 @@ function paperfigure_ams_AAA(f,col,aspect,scaling)
 % Alex Andriatis
 % 2023-08-05
 
-fontsize=10;
+fontsize=7;
 
 if ~exist('f','var')
     f=gcf;
