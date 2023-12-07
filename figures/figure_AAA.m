@@ -50,7 +50,7 @@ width=P.Results.width;
 aspect=P.Results.aspect;
 scaling=P.Results.scaling;
 
-fontsize=12;
+fontsize=9;
 
 if n==0
     f=figure;
@@ -95,8 +95,8 @@ set(f,'units',un);
 
 set(groot,'defaultaxesfontsize',round(fontsize*scaling));
 set(groot,'defaulttextfontsize',round(fontsize*scaling));
-set(groot,'defaultaxeslinewidth',round(1*scaling));
-set(groot,'defaultlinelinewidth',round(1.5*scaling));
+set(groot,'defaultaxeslinewidth',round(0.8*scaling));
+set(groot,'defaultlinelinewidth',round(1.2*scaling));
 
 % Set text interpreter to Latex by default
 set(groot,'defaulttextInterpreter','latex');
@@ -106,7 +106,9 @@ set(groot, 'defaultLegendInterpreter','latex');
 % Prevent accidental figure resizing
 % set(f,'Resize','off');
 
-% Automatically draw box
+% Clear figure if it already exists - can turn off
+clf;
+% Hold on; grid on; box on;
 hgb;
 
 end
