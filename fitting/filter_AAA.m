@@ -49,7 +49,7 @@ for i=1:size(ydata,1)
     % of the cutoff frequency number of points
     edgepoints=round(sfreq/filtfreq(1)/2);
     tmp2 = [fliplr(tmp(1:edgepoints)) tmp fliplr(tmp(end-edgepoints+1:end))];
-    tmpfilt = filtfilt(b,a,tmp2);
+    tmpfilt = filtfilt(b,a,double(tmp2));
     yfilt(i,:)=tmpfilt(edgepoints+1:end-edgepoints);
     if strcmp(ftype,'low')
         yfilt(i,:) = yfilt(i,:)+trend;

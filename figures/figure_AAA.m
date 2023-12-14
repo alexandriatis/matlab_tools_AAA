@@ -34,10 +34,10 @@ P=inputParser;
 
 addOptional(P,'n',0);
 
-defaultWidth=560; % Expressed in pt = 1/72.72 inches
+defaultWidth = 1; % Scaled relative to double-width ams figure
 addParameter(P,'width',defaultWidth,@isnumeric);
 
-defaultAspect=0.75;
+defaultAspect=0.8;
 addParameter(P,'aspect',defaultAspect,@isnumeric);
 
 screen = get(0,'Screensize');
@@ -50,7 +50,9 @@ width=P.Results.width;
 aspect=P.Results.aspect;
 scaling=P.Results.scaling;
 
-fontsize=9;
+width=width*468; % 468 pixels is the default double-width ams size 
+
+fontsize=7;
 
 if n==0
     f=figure;
@@ -95,8 +97,8 @@ set(f,'units',un);
 
 set(groot,'defaultaxesfontsize',round(fontsize*scaling));
 set(groot,'defaulttextfontsize',round(fontsize*scaling));
-set(groot,'defaultaxeslinewidth',round(0.8*scaling));
-set(groot,'defaultlinelinewidth',round(1.2*scaling));
+set(groot,'defaultaxeslinewidth',round(0.75*scaling));
+set(groot,'defaultlinelinewidth',round(1*scaling));
 
 % Set text interpreter to Latex by default
 set(groot,'defaulttextInterpreter','latex');
