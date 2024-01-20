@@ -24,6 +24,8 @@ function [rho_sort,I]=sort_rho_AAA(SA,CT,p)
 %
 % OUTPUT:
 %  rho_sort  = sorted in-situ density                            [ kg/m^3 ]
+%  Isort     = sorting indices, such that
+%              rho_sort=gsw_rho(SA(Isort),CT(Isort),p)
 %
 % AUTHOR: 
 %  Alex Andriatis, 2024-01-19
