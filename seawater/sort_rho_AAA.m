@@ -59,7 +59,7 @@ p=p(Inan);
 NZ=length(SA);
 Ind=1:NZ;
 Isort=Ind;
-Ifree=true(1,NZ);
+Ifree=true(NZ,1);
 for k=1:NZ
     % Calculate the density profile referenced to the current depth
     rtemp=gsw_rho(SA(Ifree),CT(Ifree),p(k));
