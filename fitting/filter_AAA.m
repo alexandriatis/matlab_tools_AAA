@@ -38,7 +38,23 @@ if ~exist('order','var')
     order=4;
 end
 
+% For some reason, bandpass filtering doesn't work well
+% Instead, I can hack this by recursively calling this function in high and
+% low configuration
+if strcmp(ftype,'bandpass')
+    yfilt=filter_AAA(ydata,filtfreq(2),sfreq,'low',order);
+    yfilt=filter_AAA(yfilt,filtfreq(1),sfreq,'high',order);
+
+elseif strcmp(ftype,'stop')
+    yfilt_l=filter_AAA(ydata,filtfreq(1),sfreq,'low',order);
+    yfilt_h=filter_AAA(ydata,filtfreq(2),sfreq,'high',order);
+    yfilt=yfilt_l+yfilt_h;
+else
+
 fNy = 0.5*sfreq;
+if filtfreq./fNy >= 1
+    error('filtering doesnt handle frequencies bigger than nyquist');
+end
 [b,a] = butter(order,filtfreq./fNy,ftype);
 
 for i=1:size(ydata,1)
@@ -49,9 +65,10 @@ for i=1:size(ydata,1)
     % of the cutoff frequency number of points
     edgepoints=round(sfreq/filtfreq(1)/2);
     tmp2 = [fliplr(tmp(1:edgepoints)) tmp fliplr(tmp(end-edgepoints+1:end))];
-    tmpfilt = filtfilt(b,a,double(tmp2));
+    tmpfilt = filtfilt(b,a,tmp2);
     yfilt(i,:)=tmpfilt(edgepoints+1:end-edgepoints);
     if strcmp(ftype,'low')
         yfilt(i,:) = yfilt(i,:)+trend;
     end
+end
 end

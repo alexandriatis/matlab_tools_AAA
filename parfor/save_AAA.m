@@ -3,7 +3,7 @@ function save_AAA(savepath,savename,data)
 %
 % Alex Andriatis
 % 2022-08-15
-save(fullfile(savepath,savename),'-struct','data');
+save(fullfile(savepath,savename),'-struct','data','-v7.3');
 disp(['Saved file ' savename]);
 end
 

@@ -2,8 +2,8 @@ function [f,scaling]=figure_AAA(varargin)
 % figure_AAA initializes a scaled figure that is useful for making publication figures
 % Standard AMS figure sizes are 19, 27, 33, or 39pc where
 % 1pc = 12 pt = 0.166 inches, 1 pt = 1/72.27 inches
-% 1 column = 19 pc = 228 pt = 3.1548 inches
-% 2 column = 39 pc = 468 pt = 6.4757 inches
+% 1 column = 19 pc = 228 pt = 3.1548 inches = width 0.41
+% 2 column = 39 pc = 468 pt = 6.4757 inches = width 0.84
 %
 % Scaling the figure allows plotting on large monitors while preserving
 % font and line sizes that are consistent with a given figure width
@@ -34,14 +34,14 @@ P=inputParser;
 
 addOptional(P,'n',0);
 
-defaultWidth = 1; % Scaled relative to double-width ams figure
+%defaultWidth = 0.41; % Scaled relative to single-width ams figure
+defaultWidth = 0.6; % For nicer plots
 addParameter(P,'width',defaultWidth,@isnumeric);
 
 defaultAspect=0.8;
 addParameter(P,'aspect',defaultAspect,@isnumeric);
 
-screen = get(0,'Screensize');
-defaultScaling=min(max(1,round((screen(3)/560)*0.5,1)),max(1,round((screen(4)/420)*0.5,1))); % Default figure 1/2 screen width or height
+defaultScaling=0;
 addParameter(P,'scaling',defaultScaling,@isnumeric);
 
 parse(P,varargin{:});
@@ -50,14 +50,13 @@ width=P.Results.width;
 aspect=P.Results.aspect;
 scaling=P.Results.scaling;
 
-width=width*468; % 468 pixels is the default double-width ams size 
-
-fontsize=7;
+width=width*560; % 560 pixels is the default matlab figure size
 
 if n==0
     f=figure;
 else
     f=figure(n);
+    %f=figure('visible','off');
 end
 
 un=get(f,'units');
@@ -73,6 +72,12 @@ if height>maxheight
 end
 
 fsize=[width height];
+
+% Set the default scaling to half screen width or height
+if ~scaling
+    screen = get(0,'Screensize');
+    scaling=min(max(1,round((screen(3)/width)*0.5,1)),max(1,round((screen(4)/height)*0.5,1))); % Default figure 1/2 screen width or height
+end
 fsize=round(fsize*scaling);
 
 % Limit height and width to fit in the scren it's in while preserving
@@ -94,6 +99,8 @@ end
 set(f,'Position',[screen(3:4)/2-fsize/2,fsize]);
 
 set(f,'units',un);
+
+fontsize=7;
 
 set(groot,'defaultaxesfontsize',round(fontsize*scaling));
 set(groot,'defaulttextfontsize',round(fontsize*scaling));

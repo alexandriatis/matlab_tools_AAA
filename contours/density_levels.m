@@ -41,7 +41,7 @@ levels = P.Results.levels;
 
 
 % Mean Density
-mean_density = nanmean(density,2); % Mean in time
+mean_density = mean(density,2,'omitnan'); % Mean in time
 mean_density = sort(mean_density); % Sorted in depth 
 mean_density = mean_density(~isnan(mean_density)); % Remove NaNs
 
@@ -51,7 +51,7 @@ if strcmp(weighting,'equal')
     Idens = numdens(2:end-1);
 elseif strcmp(weighting,'pycnocline')
     numdens = linspace(mean_density(1),mean_density(end),levels+2);
-    [~,Idens] = closest(mean_density,numdens,1);
+    [~,Idens] = closest_AAA(mean_density,numdens,1);
     Idens = Idens(2:end-1);
     Idens = unique(Idens);
 end

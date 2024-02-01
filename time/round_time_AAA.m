@@ -51,6 +51,12 @@ unit = P.Results.unit;
 value = P.Results.value;
 direction = P.Results.direction;
 
+tvec=time;
+NT=length(tvec);
+time_round=NaN(1,NT);
+
+for n=1:NT
+    time=tvec(n);
 switch unit
     case 'year'
         t1=year(time);
@@ -68,13 +74,13 @@ switch unit
         tgrid=datenum(year(time),1,1:value:t1+value);
     case 'hour'
         t1=hour(time);
-        tgrid=datenum(year(time),month(time),day(time),0:value:t1+value,0,0);
+        tgrid=datenum(year(time),month(time),day(time),t1-1:value:t1+value,0,0);
     case 'minute'
         t1=minute(time);
-        tgrid=datenum(year(time),month(time),day(time),hour(time),0:value:t1+value,0);
+        tgrid=datenum(year(time),month(time),day(time),hour(time),t1-1:value:t1+value,0);
     case 'second'
-        t1=second(time);
-        tgrid=datenum(year(time),month(time),day(time),hour(time),minute(time),0:value:t1+value);
+        t1=round(second(time));
+        tgrid=datenum(year(time),month(time),day(time),hour(time),minute(time),t1-120:value:t1+value);
 end
 
 switch direction
@@ -85,4 +91,5 @@ switch direction
     case 'ceil'
         It=find((tgrid-time)>=0,1,'first');
 end
-time_round=tgrid(It);
+time_round(n)=tgrid(It);
+end
