@@ -1,12 +1,15 @@
-function z=inpaint_nans_AAA(z,nanflag)
+function z=inpaint_nans_AAA(z,nanflag,method)
 % Does inpaint_nans but if no extrapolation is requested, doesn't
 % extrapolate
 %
 % Alex Andriatis
 % 2023-06-14
 
+if ~exist('method','var')
+    method=0;
+end
 if exist('nanflag','var') && strcmp(nanflag,'extrap')
-    z=inpaint_nans(z);
+    z=inpaint_nans(z,method);
     return
 end
 [NY,NX]=size(z);
@@ -38,7 +41,7 @@ for n=1:NY
     end
     Ixlim(n,2)=tmp;
 end
-z=inpaint_nans(z);
+z=inpaint_nans(z,method);
 
 for n=1:NX
     if Iylim(1,n)>1

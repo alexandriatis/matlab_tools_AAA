@@ -16,19 +16,27 @@ function postfix_figure_AAA(f,scaling)
 % Adapted to regular figures for work
 % 2023-09-01
 
-fontsize=6;
-
 if ~exist('f','var')
     f=gcf;
 end
 if ~exist('scaling','var')
-    scaling=1; % Depends on monitor resolution. I want to make figures as big as I can
+    if isprop(f,'Scaling')
+        scaling=f.Scaling;
+    else
+        scaling=1; % Depends on monitor resolution. I want to make figures as big as I can
+    end
+end
+
+if isprop(f,'FontSize')
+    fontsize=f.FontSize;
+else
+    fontsize=7;
 end
 
 tx=findall(f,'Type','Text');
 NTX=length(tx);
 for i=1:NTX
-    tx(i).Interpreter='latex';
+    %tx(i).Interpreter='latex';
 end
 
 ax=findall(f,'Type','Axes');
@@ -40,9 +48,9 @@ end
 c=findall(f,'Type','ColorBar');
 NC=length(c);
 for i=1:NC
-    c(i).TickLabelInterpreter='Latex';
+    %c(i).TickLabelInterpreter='Latex';
     c(i).FontSize=fontsize*scaling;
-    c(i).Label.Interpreter='Latex';
+    %c(i).Label.Interpreter='Latex';
     c(i).Label.FontSize=fontsize*scaling;
 end
 

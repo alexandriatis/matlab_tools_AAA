@@ -1,4 +1,8 @@
-function export_fig_AAA(f,figpath,figname,speed,format)
+%Waiting for matlab to improve the functionality of exportgraphics before
+%switching over to this new figure saving routine
+%
+%
+% function export_fig_AAA(f,figpath,figname,speed,format)
 savepath=fullfile(figpath,figname);
 
 if ~exist('speed','var')
@@ -12,18 +16,19 @@ drawnow; % This might prevent some crashes on memory overload on large figs
 switch speed
     case 'fast'
         plot_fname_timestamp_AAA(f); % Plot the file name of the script used to generate the figure
-        resolution = '-r150';
+        resolution = 150;
         if any(contains(format,'fig'))
             savefig(f,savepath,'compact');
         end
         if any(contains(format,'png'))
-            print(f,savepath,'-dpng',resolution);
+            %print(f,savepath,'-dpng',resolution);
+            exportgraphics(f,[savepath '.png'],'BackgroundColor','none','Resolution',resolution);
         end
         if any(contains(format,'pdf'))
             print(f,savepath,'-dpdf',resolution,'-fillpage');
         end
     case 'good'
-        resolution = '-r300';
+        resolution = 300;
         if any(contains(format,'fig'))
             savefig(f,savepath,'compact');
         end
@@ -34,7 +39,7 @@ switch speed
             print(f,savepath,'-dpdf',resolution,'-fillpage');
         end
     case 'fancy'
-        resolution = '-r300';
+        resolution = 300;
         if any(contains(format,'fig'))
             savefig(f,savepath);
         end

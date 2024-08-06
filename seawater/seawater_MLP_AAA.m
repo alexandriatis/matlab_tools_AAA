@@ -15,19 +15,22 @@ function mlp = seawater_MLP_AAA(SA,CT,P)
 %
 % Alex Andriatis
 % 07-22-2022
-
-% Sort pressure just to make sure everything is in the right order
-[P,Isort] = sort(P,'ascend');
-SA = SA(Isort);
-CT = CT(Isort);
+%
+% Updated to work only with pre-sorted profiles of SA and CT to remove
+% ambiguity. Still only works on single profiles.
+%
+% Alex Andriatis
+% 2024-05-28
 
 sig0 = gsw_sigma0(SA,CT);
-% Sort it to remove inversions
-[sig0,Isort] = sort(sig0,'ascend');
 
-% Get sigma0 at 10m
-t10 = interp1(P,CT(Isort),10);
-s10 = interp1(P,SA(Isort),10);
+% Get sigma0 at 10m, or whatever is the shallowest depth
+ztar=10;
+if min(P)>ztar
+    ztar=min(P);
+end
+t10 = interp1(P,CT,ztar);
+s10 = interp1(P,SA,ztar);
 sig_ref = gsw_sigma0(s10,t10);
 
 % Get sigma0 at MLD
@@ -37,11 +40,16 @@ sig_tar = gsw_sigma0(s10,t10-0.2);
 dsig0 = sig_tar-sig_ref;
 
 % Get sigma0 at 10m
-sig10 = interp1(P,sig0,10);
+sig10 = interp1(P,sig0,ztar);
 
 % Sigma at MLD
 sig_mld = sig10+dsig0;
 
 % Find the depth of sig_mld
-mlp = interp1(sig0,P,sig_mld);
+% Becasue there might be inversions, first find the depth, then refine
+Itar=find(sig0>sig_mld,1,'first');
+if Itar>1
+    mlp = interp1(sig0(Itar-1:Itar),P(Itar-1:Itar),sig_mld);
+else
+    mlp = NaN;
 end

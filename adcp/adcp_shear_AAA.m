@@ -39,8 +39,6 @@ fNy = 1/(2*dz); % Nyquist frequency of the data
 if fcutoff>=fNy
     tofilter=0;
 else
-    Wn = fcutoff/fNy; % Scaled cutoff
-    [b,a] = butter(4,Wn,'low'); % A 4th-order lowpass butterworth filter
     tofilter=1;
 end
 
@@ -59,20 +57,24 @@ for n=1:length(varnames)
         tmp = vel(:,t);
         % Remove nans from the data
         I = ~isnan(tmp);
-        if sum(I)<2
+        if sum(I)<3 % Need at least three points for a gradient
             continue
         end
         tmpz = data.depth(I);
         tmp = tmp(I);
         % If points have been removed in the interior, linearly interpolate over them
         if var(diff(tmpz))~=0 
-           zgrid = tmpz(1):dz:tmpz(end);
+           zgrid = column_AAA(tmpz(1):dz:tmpz(end));
            tmp = interp1(tmpz,tmp,zgrid);
            tmpz = zgrid;
         end
         if tofilter
+            % Check if there's enough data for filtering, namely twice the
+            % cutoff
+            edgepoints=ceil(2*fNy/fcutoff);
+            if length(tmp)<edgepoints; continue; end
             % Low-pass the data
-            tmp = filtfilt(b,a,tmp);
+            tmp=filter_AAA(tmp,fcutoff,2*fNy,'low',4);
         end
         % Calculate the vertical gradients
         dtmpdz = gradient(tmp)./gradient(tmpz);
@@ -83,4 +85,3 @@ for n=1:length(varnames)
     end
     data.(shearnames{n})=dveldz;
 end
-data.shear2 = data.dudz.^2 + data.dvdz.^2;

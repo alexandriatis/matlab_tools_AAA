@@ -10,10 +10,13 @@ function [trend,p] = trend_AAA(x,y,n)
 % Alex Andriatis
 % 2021-08-23
 
+NY=size(y);
 T=length(y);
 if isempty(x)
-    x=1:T;
+    x=column_AAA(1:T);
 end
+x=column_AAA(x);
+y=column_AAA(y);
 
 I=~isnan(y)&~isinf(y)&~isnan(x)&~isinf(x);
 %I=~isnan(y)&~isinf(y);
@@ -22,6 +25,6 @@ xn = x(I);
 
 p = polyfit(xn,yn,n);
 trend = polyval(p,x);
-trend = reshape(trend,size(y));
+trend = reshape(trend,NY);
 end
 

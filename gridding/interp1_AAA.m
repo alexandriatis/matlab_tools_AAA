@@ -46,9 +46,14 @@ xq = xq(:);
 I=~isnan(x);
 x=x(I);
 y=y(I,:);
-[x,~,ic] = unique(x);
-[icx,icy]=ndgrid(ic,1:size(y,2));
-y = accumarray([icx(:),icy(:)],y(:),[],@(x)sum_AAA(x,'omitnan'),NaN);
+
+% I think I need to change this so that accumarray is only called if the
+% unique version of the reference vector is not equivalent to the original
+if length(unique(x))~=length(x)
+    [x,~,ic] = unique(x);
+    [icx,icy]=ndgrid(ic,1:size(y,2));
+    y = accumarray([icx(:),icy(:)],y(:),[],@(x)sum_AAA(x,'omitnan'),NaN);
+end
 
 F=griddedInterpolant(x,y,interpmethod,extrapmethod);
 ygrid=F(xq);
