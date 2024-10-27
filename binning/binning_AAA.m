@@ -29,7 +29,7 @@ function [y_binned,x_center,count_binned]=binning_AAA(x,y,bins,varargin)
 
 P=inputParser;
 addRequired(P,'x',@isnumeric);
-addRequired(P,'y',@isnumeric);
+addRequired(P,'y',@(x)isnumeric(x)||islogical(x));
 addRequired(P,'bins',@isnumeric);
 
 defaultEdges = 'center';
@@ -37,8 +37,12 @@ checkString=@(s) any(strcmp(s,{'center','edges'}));
 addParameter(P,'BinCentering',defaultEdges,checkString);
 
 defaultInterpFill = 'none';
-checkString=@(s) any(strcmp(s,{'none','interp','extrap'}));
+checkString=@(s) any(strcmp(s,{'none','interp','extrap','linear','nearest','next','previous','pchip','cubic','v5cubic','makima','spline'}));
 addParameter(P,'InterpFill',defaultInterpFill,checkString);
+
+defaultExtrapFill = 'none';
+checkString=@(s) any(strcmp(s,{'none','linear','nearest','next','previous','pchip','cubic','v5cubic','makima','spline'}));
+addParameter(P,'ExtrapFill',defaultExtrapFill,checkString);
 
 defaultWeights = 1;
 addParameter(P,'weights',defaultWeights,@isnumeric);
@@ -55,6 +59,7 @@ BinCentering = P.Results.BinCentering;
 InterpFill = P.Results.InterpFill;
 weights = P.Results.weights;
 operation=P.Results.operation;
+ExtrapFill = P.Results.ExtrapFill;
 
 use_edges=0;
 if exist('option','var')
@@ -176,6 +181,12 @@ for t=1:NT
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear');
     elseif strcmp(InterpFill,'extrap') && sum(~isnan(tmp_binned))>=2
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear','extrap');
+    elseif any(strcmp(InterpFill,{'linear','nearest','next','previous','pchip','cubic','v5cubic','makima','spline'})) && sum(~isnan(tmp_binned))>=2
+        if any(strcmp(ExtrapFill,{'linear','nearest','next','previous','pchip','cubic','v5cubic','makima','spline'}))
+            tmp_binned = interp1_AAA(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,InterpFill,ExtrapFill);
+        else
+           tmp_binned = interp1_AAA(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,InterpFill,'none');
+        end
     end
     y_binned(:,t) = tmp_binned;
     fracdone2=floor(t/NT*100);

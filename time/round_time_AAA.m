@@ -34,7 +34,7 @@ function time_round=round_time_AAA(varargin)
 
 P=inputParser;
 
-time=now;
+time=double(now);
 addOptional(P,'time',time,@isnumeric);
 
 checkString=@(s) any(strcmp(s,{'year','month','day','hour','minute','second'}));
@@ -74,22 +74,22 @@ switch unit
         tgrid=datenum(year(time),1,1:value:t1+value);
     case 'hour'
         t1=hour(time);
-        tgrid=datenum(year(time),month(time),day(time),t1-1:value:t1+value,0,0);
+        tgrid=datenum(year(time),month(time),day(time),0:value:t1+value,0,0);
     case 'minute'
         t1=minute(time);
-        tgrid=datenum(year(time),month(time),day(time),hour(time),t1-1:value:t1+value,0);
+        tgrid=datenum(year(time),month(time),day(time),hour(time),0:value:t1+value,0);
     case 'second'
         t1=round(second(time));
-        tgrid=datenum(year(time),month(time),day(time),hour(time),minute(time),t1-120:value:t1+value);
+        tgrid=datenum(year(time),month(time),day(time),hour(time),minute(time),-60:value:t1+value);
 end
 
 switch direction
     case 'round'
         [~,It]=min(abs(tgrid-time));
     case 'floor'
-        It=find((tgrid-time)<=0,1,'last');    
+        It=find((tgrid-time)<=0+1e-6,1,'last');    
     case 'ceil'
-        It=find((tgrid-time)>=0,1,'first');
+        It=find((tgrid-time)>=0-1e-6,1,'first');
 end
 time_round(n)=tgrid(It);
 end

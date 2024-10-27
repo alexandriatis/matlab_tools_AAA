@@ -1,4 +1,4 @@
-function [corder,cmap,clims] = colororder_AAA(vals,cmap)
+function [corder,cmap,vlims] = colororder_AAA(vals,cmap)
 % This function is designed to make a better uniform colormap for lots of
 % lines representing unevenly-spaced values.
 %

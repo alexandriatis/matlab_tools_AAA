@@ -133,7 +133,7 @@ set(f,'units','pixels');
 % Also it turns out that sometimes matlab tries to use a weird painter for
 % whatever reason, and on big plots causes it to crash on save. Opengl
 % doesn't have these problems
-set(f,'Renderer','opengl');
+%set(f,'Renderer','opengl');
 
 % Clear some common variables in figures
 evalin( 'base', 'clear ax cb' );
