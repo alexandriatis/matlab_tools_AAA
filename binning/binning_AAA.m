@@ -48,7 +48,7 @@ defaultWeights = 1;
 addParameter(P,'weights',defaultWeights,@isnumeric);
 
 defaultOperation = 'mean';
-checkString=@(s) any(strcmp(s,{'mean','sum','min','max'}));
+checkString=@(s) any(strcmp(s,{'mean','sum','min','max','var'}));
 addParameter(P,'operation',defaultOperation,checkString);
 
 parse(P,x,y,bins,varargin{:});
@@ -176,6 +176,8 @@ for t=1:NT
             tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)min_AAA(x,'omitnan'),NaN);
         case {'max'}
             tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)max_AAA(x,'omitnan'),NaN);
+        case {'var'}
+            tmp_binned = accumarray(bin_ind,weights(:,t).*y(:,t),[NB,1],@(x)var_AAA(x,'omitnan'),NaN);
     end
     if strcmp(InterpFill,'interp') && sum(~isnan(tmp_binned))>=2
         tmp_binned = interp1(x_center(~isnan(tmp_binned)),tmp_binned(~isnan(tmp_binned)),x_center,'linear');

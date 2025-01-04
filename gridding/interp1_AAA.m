@@ -55,8 +55,15 @@ if length(unique(x))~=length(x)
     y = accumarray([icx(:),icy(:)],y(:),[],@(x)sum_AAA(x,'omitnan'),NaN);
 end
 
-F=griddedInterpolant(x,y,interpmethod,extrapmethod);
-ygrid=F(xq);
+% For some reason this doesn't worth with older matlab, see solution below
+%F=griddedInterpolant(x,y,interpmethod,extrapmethod);
+%ygrid=F(xq);
+
+ygrid=NaN(length(xq),size(y,2));
+for n=1:size(y,2)
+    F=griddedInterpolant(x,y(:,n),interpmethod,extrapmethod);
+    ygrid(:,n)=F(xq);
+end
 
 if xqorient==-1
     ygrid=ygrid';
