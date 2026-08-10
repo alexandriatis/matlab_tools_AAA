@@ -60,7 +60,7 @@ else
     c = colormap(parula(numcolors));
 end
 
-[~,Itimes] = closest(newval,vals,1);
+[~,Itimes] = closest_AAA(newval,vals,1);
 c = c(Itimes,:);
 c = c(Isort,:);
 colororder(ax,c);
